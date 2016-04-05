@@ -9,6 +9,7 @@
   "license": "MIT",
   "dependencies": {
     "async": "^1.5.2",
+    "beepboop-botkit": "^1.1.1",
     "botkit": "0.0.15",
     "request": "^2.70.0"
   }

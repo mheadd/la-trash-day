@@ -3,17 +3,21 @@ var request = require('request');
 var async = require('async');
 var config = require('./config').config
 
-if(!process.env.SLACK_TOKEN) {
-  console.error('SLACK_TOKEN is required!');
-  process.exit(1);
-}
+var token = process.env.SLACK_TOKEN
 
 var controller = Botkit.slackbot()
-var bot = controller.spawn({ token: process.env.SLACK_TOKEN }).startRTM(function (err, bot, payload) {
-  if(err) {
-    throw new Error('Could not connect to Slack');
-  }
-});
+
+if (token) {
+  console.log("Starting in single-team mode")
+  controller.spawn({ token: token }).startRTM(function(err,bot,payload) {
+    if (err) {
+      throw new Error('Could not connect to Slack')
+    }
+  })
+} else {
+  console.log("Starting in Beep Boop multi-team mode")
+  require('beepboop-botkit').start(controller, { debug: true })
+}
 
 controller.hears('.*', ['direct_mention'], function (bot, message) {
 
@@ -25,10 +29,10 @@ controller.hears('.*', ['direct_mention'], function (bot, message) {
    * 2. Lookup trash day using coordinates.
    * 3. Render response to user.
    */
-  async.waterfall([ 
+  async.waterfall([
       async.apply(geoCodeAddress, address),
       lookUpTrashDay
-    ], 
+    ],
     function(error, data) {
       if(error) {
         bot.reply(message, 'Sorry, I was unable to look up the trashday for that address.');
