@@ -19,7 +19,7 @@ if (token) {
   require('beepboop-botkit').start(controller, { debug: true })
 }
 
-controller.hears('.*', ['direct_mention'], function (bot, message) {
+controller.hears('.*', ['direct_mention', 'direct_message'], function (bot, message) {
 
   // The address submitted by the user.
   var address = message.text;
