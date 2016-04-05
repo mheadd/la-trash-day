@@ -38,6 +38,11 @@ controller.hears('.*', ['direct_mention'], function (bot, message) {
         bot.reply(message, 'Sorry, I was unable to look up the trashday for that address.');
       }
       else {
+        var feature = JSON.parse(data).features[0]
+        if (!feature ) {
+          return bot.reply(message, 'Sorry, I was unable to look up the trashday for that address.');
+        }
+
         var day = JSON.parse(data).features[0].attributes.Day;
         bot.reply(message, 'Your trash day is on ' + config.titleCase(day));
       }
@@ -54,7 +59,12 @@ function geoCodeAddress(address, callback) {
 
 // Look up the user's trash day.
 function lookUpTrashDay(geodata, callback) {
-  var location = JSON.parse(geodata).results[0].geometry.location;
+  var result = JSON.parse(geodata).results[0]
+  if (!result) {
+    return callback(new Error('no results returned'))
+  }
+
+  var location = result.geometry.location;
   url = config.lahub_url_template.replace('%geometry%', location.lng + ',' + location.lat);
   request(url, function(error, response, body) {
     callback(error, body);
