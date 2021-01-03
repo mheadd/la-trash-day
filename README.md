@@ -7,7 +7,7 @@ A Slack bot to find out when trash is picked up in the City of Los Angeles. More
 
 To learn more about querying GeoServices, go [here](http://geoservices.github.io/).
 
-This bot is built with the [Botkit](https://github.com/howdyai/botkit) Node.js module from [Howdy](http://howdy.ai/) and is running on [Beep Boop](https://beepboophq.com/).
+This bot is built with the [Botkit](https://github.com/howdyai/botkit) Node.js module from [Howdy](http://howdy.ai/) and is running on [Beep Boop](https://medium.com/slack-developer-blog/easy-peasy-bots-beep-boop-6240328a0f8d). (Note - Beep Boop no longers appears to be in service as of January 2021.)
 
 ## License
 
