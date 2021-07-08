@@ -3,19 +3,23 @@ var request = require('request');
 var async = require('async');
 var config = require('./config').config
 
-if(!process.env.SLACK_TOKEN) {
-  console.error('SLACK_TOKEN is required!');
-  process.exit(1);
-}
+var token = process.env.SLACK_TOKEN
 
 var controller = Botkit.slackbot()
-var bot = controller.spawn({ token: process.env.SLACK_TOKEN }).startRTM(function (err, bot, payload) {
-  if(err) {
-    throw new Error('Could not connect to Slack');
-  }
-});
 
-controller.hears('.*', ['direct_mention'], function (bot, message) {
+if (token) {
+  console.log("Starting in single-team mode")
+  controller.spawn({ token: token }).startRTM(function(err,bot,payload) {
+    if (err) {
+      throw new Error('Could not connect to Slack')
+    }
+  })
+} else {
+  console.log("Starting in Beep Boop multi-team mode")
+  require('beepboop-botkit').start(controller, { debug: true })
+}
+
+controller.hears('.*', ['direct_mention', 'direct_message'], function (bot, message) {
 
   // The address submitted by the user.
   var address = message.text;
@@ -25,15 +29,20 @@ controller.hears('.*', ['direct_mention'], function (bot, message) {
    * 2. Lookup trash day using coordinates.
    * 3. Render response to user.
    */
-  async.waterfall([ 
+  async.waterfall([
       async.apply(geoCodeAddress, address),
       lookUpTrashDay
-    ], 
+    ],
     function(error, data) {
       if(error) {
         bot.reply(message, 'Sorry, I was unable to look up the trashday for that address.');
       }
       else {
+        var feature = JSON.parse(data).features[0]
+        if (!feature ) {
+          return bot.reply(message, 'Sorry, I was unable to look up the trashday for that address.');
+        }
+
         var day = JSON.parse(data).features[0].attributes.Day;
         bot.reply(message, 'Your trash day is on ' + config.titleCase(day));
       }
@@ -50,7 +59,12 @@ function geoCodeAddress(address, callback) {
 
 // Look up the user's trash day.
 function lookUpTrashDay(geodata, callback) {
-  var location = JSON.parse(geodata).results[0].geometry.location;
+  var result = JSON.parse(geodata).results[0]
+  if (!result) {
+    return callback(new Error('no results returned'))
+  }
+
+  var location = result.geometry.location;
   url = config.lahub_url_template.replace('%geometry%', location.lng + ',' + location.lat);
   request(url, function(error, response, body) {
     callback(error, body);
